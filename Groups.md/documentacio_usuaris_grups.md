@@ -3,7 +3,7 @@
 **Mòdul:** Sistemes Operatius
 **Servidor:** Ubuntu Server 24.04 (noble) — host `nomequip`
 **Usuari administrador:** `usuari`
-**Alumne:** _(nom i cognoms)_ — **Número de llista:** 17
+**Alumne:** _(Sergi Novell)_ — **Número de llista:** 17
 
 ---
 
@@ -13,8 +13,7 @@
 2. [Tasca 2. Gestió dels perfils d'usuari](#tasca-2-gestió-dels-perfils-dusuari)
 3. [Tasca 3. Creació i configuració d'usuaris](#tasca-3-creació-i-configuració-dusuaris)
 4. [Tasca 4. Inspecció del sistema i fitxers de configuració](#tasca-4-inspecció-del-sistema-i-fitxers-de-configuració)
-5. [Tasca 5. Manteniment, bloqueig i eliminació](#tasca-5-manteniment-bloqueig-i-eliminació)
-6. [Tasca 6. Personalització de l'entorn d'usuari](#tasca-6-personalització-de-lentorn-dusuari)
+5. [Tasca 5. Personalització de l'entorn d'usuari](#tasca-6-personalització-de-lentorn-dusuari)
 
 ---
 
@@ -218,43 +217,8 @@ su - pau_dev
 
 ## Tasca 4. Inspecció del sistema i fitxers de configuració
 
-### 4.1 Comanda `id marc_sys`
 
-```bash
-id marc_sys
-```
-
-![Sortida de id marc_sys](imagenes/13_id_marc_sys.png)
-
-**Resposta:** La comanda `id` mostra:
-- **UID:** identificador numèric de l'usuari `marc_sys`.
-- **GID:** identificador del seu grup principal, `sysadmin` (**1002**).
-- **Grups:** `sysadmin` (principal, 1002) i `devs` (secundari, 1001).
-
-> _(Completa aquí amb el valor exacte d'UID que apareix a la teva captura.)_
-
-### 4.2 Diferència entre `/etc/passwd` i `/etc/shadow`
-
-```bash
-grep pau_dev /etc/passwd
-sudo grep pau_dev /etc/shadow
-ls -l /etc/shadow
-```
-
-![pau_dev a /etc/passwd i /etc/shadow](imagenes/14_passwd_shadow.png)
-
-![Permisos de /etc/shadow](imagenes/15_permisos_shadow.png)
-
-**Resposta:**
-
-| | `/etc/passwd` | `/etc/shadow` |
-|---|---|---|
-| **Contingut** | Nom d'usuari, `x` (la contrasenya es troba a shadow), UID, GID, nom real, directori personal i shell | Nom d'usuari, **hash** de la contrasenya i dades de caducitat (últim canvi, mínim, màxim, avís, inactivitat, caducitat del compte) |
-| **Permisos** | `-rw-r--r--` (644), llegible per tothom | `-rw-r-----` (640), propietari `root`, grup `shadow` |
-
-El fitxer `/etc/shadow` té permisos `-rw-r-----` (només `root` pot llegir i escriure, i el grup `shadow` només llegir; la resta d'usuaris no hi té accés). Es fa així perquè conté els **hashes de les contrasenyes**: si qualsevol usuari pogués llegir-lo, podria copiar-los i intentar descobrir contrasenyes per força bruta. `/etc/passwd` ha de ser llegible per tothom perquè moltes eines necessiten convertir UID ↔ nom d'usuari.
-
-### 4.3 Directori plantilla per als usuaris nous
+### 4.1 Directori plantilla per als usuaris nous
 
 ```bash
 grep SKEL /etc/adduser.conf
@@ -266,58 +230,10 @@ grep SKEL /etc/adduser.conf
 
 ---
 
-## Tasca 5. Manteniment, bloqueig i eliminació
 
-### 5.1 Bloqueig temporal de `pau_dev`
+## Tasca 5. Personalització de l'entorn d'usuari
 
-```bash
-sudo usermod -L pau_dev
-```
-
-**Explicació:** `usermod -L` (*lock*) afegeix un signe d'exclamació `!` davant del hash de la contrasenya a `/etc/shadow`. Així el hash deixa de ser vàlid i l'usuari no pot autenticar-se amb contrasenya. (Alternativa equivalent: `sudo passwd -l pau_dev`.)
-
-### 5.2 Comprovació a `/etc/shadow`
-
-```bash
-sudo grep pau_dev /etc/shadow
-```
-
-![Bloqueig de pau_dev i comprovació a /etc/shadow](imagenes/17_bloqueig.png)
-
-**Conclusió:** El camp del hash comença per `!`, la qual cosa indica que el compte està bloquejat.
-
-### 5.3 Desbloqueig de `pau_dev`
-
-```bash
-sudo usermod -U pau_dev
-sudo grep pau_dev /etc/shadow
-```
-
-**Explicació:** `usermod -U` (*unlock*) elimina el `!` del hash i restaura l'accés.
-
-![Desbloqueig de pau_dev](imagenes/18_desbloqueig.png)
-
-**Conclusió:** El hash ja no porta el `!` al davant: el compte torna a estar actiu.
-
-### 5.4 Eliminació de l'usuari `auditor`
-
-```bash
-sudo userdel -r auditor
-ls /home
-getent passwd auditor
-```
-
-**Explicació:** `userdel -r` elimina l'usuari de `/etc/passwd` i `/etc/shadow`, el seu **directori personal** i la seva **bústia de correu** (`/var/mail/auditor`). `ls /home` i `getent passwd auditor` serveixen per comprovar que ja no existeix.
-
-![Eliminació de l'usuari auditor](imagenes/19_userdel_auditor.png)
-
-**Conclusió:** L'usuari `auditor` i el seu directori `/home/auditor` ja no existeixen i `getent` no retorna cap resultat.
-
----
-
-## Tasca 6. Personalització de l'entorn d'usuari
-
-### 6.1 Instal·lació de `fish`
+### 5.1 Instal·lació de `fish`
 
 ```bash
 sudo apt update
@@ -331,7 +247,7 @@ which fish
 
 ![Instal·lació de fish](imagenes/21_install_fish.png)
 
-### 6.2 Canvi de shell de `laura_dev`
+### 5.2 Canvi de shell de `laura_dev`
 
 ```bash
 sudo usermod -s /usr/bin/fish laura_dev
@@ -340,7 +256,7 @@ grep laura_dev /etc/passwd
 
 **Explicació:** `usermod -s` canvia la shell de login de l'usuari. L'últim camp de la línia de `/etc/passwd` és la shell.
 
-### 6.3 Verificació
+### 5.3 Verificació
 
 ```bash
 su - laura_dev
